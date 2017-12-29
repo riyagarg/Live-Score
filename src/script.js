@@ -13,53 +13,32 @@ function Main(){
 
   this.showBoolean = true;
   this.minBoolean = true;
-  var xyz;
+  var interval;
 
   const container = document.getElementById('container');
 
   this.init = function() {
     const scope = this;
-
-    this.makeApiCall(url,(response)=> {
-      var modifiedResponse = JSON.parse(response);
-      let flag=false;
-      for(var i=0; i<modifiedResponse.length; i++){
-        if(modifiedResponse[i].match_live === '1'){
-            scope.createDOM(modifiedResponse[i]);
-            scope.response = modifiedResponse[i];
-            flag=true;
-            break;
-        }
-      }
-      if(!flag){
-        this.createNoShowDOM();
-      }
-    });
-
-    var button1 =document.getElementById('hideButton');
-      button1.value='Hide'
-      button1.innerHTML='Hide'
-      button1.addEventListener('click',function(event){
-        button1.innerHTML= scope.showBoolean ? 'Show' :'Hide'
+    this.reInit();
+    var hideButton =document.getElementById('hideButton');
+      hideButton.value='Hide'
+      hideButton.innerHTML='Hide'
+      hideButton.addEventListener('click',function(event){
+        hideButton.innerHTML= scope.showBoolean ? 'Show' :'Hide'
         if(scope.showBoolean){
         container.innerHTML='';
-        clearInterval(xyz)
+        clearInterval(interval)
       }else{
-        if(scope.response.length !== 0){
-          scope.createDOM(scope.response)
-        }else{
-          scope.createNoShowDOM();
-        }
-
+        scope.reInit();
       }
         scope.showBoolean = !scope.showBoolean
     });
 
-    var button2 =document.getElementById('expandButton');
-    button2.innerHTML='Expand'
-    button2.addEventListener('click',function(event){
-      button2.innerHTML= scope.minBoolean ? 'MiniMize' :'Expand'
-      if(scope.minBoolean){
+    var expandButton =document.getElementById('expandButton');
+    expandButton.innerHTML='Expand'
+    expandButton.addEventListener('click',function(event){
+      expandButton.innerHTML= scope.minBoolean ? 'MiniMize' :'Expand'
+      if(scope.minBoolean && scope.showBoolean){
         container.setAttribute("style",'height: 30vh; max-height:30vh;')
       } else{
         container.setAttribute("style",'height: 10vh; max-height:10vh;')
@@ -69,6 +48,24 @@ function Main(){
     window.onload = this.addListeners();
   }
 
+  this.reInit = function(){
+    const scope = this;
+    this.makeApiCall(url,(response)=> {
+      var modifiedResponse = JSON.parse(response);
+      let flag=false;
+      for(var i=0; i<modifiedResponse.length; i++){
+        if(modifiedResponse[i].match_live === '1'){
+            scope.response = modifiedResponse[i];
+            scope.createDOM();
+            flag=true;
+            break;
+        }
+      }
+      if(!flag){
+        this.createNoShowDOM();
+      }
+    });
+  }
   this.addListeners =function(){
     document.getElementById('div').addEventListener('mousedown', this.mouseDown);
     window.addEventListener('mouseup', this.mouseUp);
@@ -107,7 +104,6 @@ function Main(){
   }
 
   this.createPhaseI = function(details){
-    console.log(details);
 
     const card = document.createElement('div')
     card.setAttribute('id', 'scoreBoard')
@@ -116,6 +112,7 @@ function Main(){
     const cardHeader = document.createElement('h2')
     cardHeader.innerHTML = 'Score Board'
     cardHeader.setAttribute('id', 'scoreBoardHeader')
+    cardHeader.setAttribute('style', 'font-size:14px, font-weight:400');
 
 
     const cardData = document.createElement('div')
@@ -123,23 +120,30 @@ function Main(){
 
     const homeTeamName = document.createElement('span')
     homeTeamName.setAttribute('id', 'home_Team_Name')
-    homeTeamName.innerHTML= details.match_hometeam_name + '\t :  \t'
+    homeTeamName.innerHTML= details.match_hometeam_name + '\t '
+    homeTeamName.setAttribute('style','margin:5px; ')
+
+    const scoreCard = document.createElement('label')
+    scoreCard.setAttribute('id', 'scoreCard')
 
     const homeTeamScore = document.createElement('span')
     homeTeamScore.setAttribute('id', 'home_Team_Score')
     homeTeamScore.innerHTML= details.match_hometeam_score + '\t - \t'
+    homeTeamScore
 
     const awayTeamScore = document.createElement('span')
     awayTeamScore.setAttribute('id', 'away_Team_Score')
-    awayTeamScore.innerHTML= details.match_awayteam_score + '\t :  \t'
+    awayTeamScore.innerHTML= details.match_awayteam_score + '\t'
+
+    scoreCard.appendChild(homeTeamScore)
+    scoreCard.appendChild(awayTeamScore)
 
     const awayTeamName = document.createElement('span')
     awayTeamName.setAttribute('id', 'away_Team_Name')
     awayTeamName.innerHTML= details.match_awayteam_name
 
     cardData.appendChild(homeTeamName)
-    cardData.appendChild(homeTeamScore)
-    cardData.appendChild(awayTeamScore)
+    cardData.appendChild(scoreCard)
     cardData.appendChild(awayTeamName)
 
     card.appendChild(cardHeader)
@@ -156,23 +160,28 @@ function Main(){
     card.setAttribute('id', 'currentData')
 
     const cardHeader = document.createElement('h2')
-    cardHeader.innerHTML = 'Present Data'
+    cardHeader.innerHTML = 'Goal Scorers List'
     cardHeader.setAttribute('id', 'currentDatarHeader')
 
     const cardData = document.createElement('div')
     cardData.setAttribute('id', 'current')
 
     const goalScorerDiv = document.createElement('ul')
+
     details.goalscorer.forEach(item => {
       const goalScorer = document.createElement('li')
       const name = document.createElement('span')
       name.innerHTML = item.home_scorer ? item.home_scorer : item.away_scorer + " \t "
+      name.setAttribute('style','color:red; font-size:13px; font-weight:bold; display:inline-block; margin:10px;');
 
       const score = document.createElement('span')
       score.innerHTML = item.score + " \t "
+      score.setAttribute('style','color:white; font-size:13px; font-weight:bold; display:inline-block; margin:10px;');
 
       const time = document.createElement('span')
-      time.innerHTML = item.time + " \t "
+      time.innerHTML = item.time + " \t " + 'minutes';
+      time.setAttribute('style','color:black; font-size:13px; font-weight:bold; display:inline-block; margin:10px;');
+
 
       goalScorer.appendChild(name)
       goalScorer.appendChild(score)
@@ -206,27 +215,34 @@ function Main(){
 
     container.innerHTML='';
     container.appendChild(card)
+    container.setAttribute('style','width:auto; height:auto;')
   }
 
 
-  this.createDOM= function(data){
+  this.createDOM = function(){
+    const data = this.response;
     const scope=this;
     var functionArray = [this.createPhaseI, this.createPhaseII, this.createPhaseIII];
     var count = 0;
     functionArray[0](data);
-     xyz = setInterval(function() {
+     interval = setInterval(function() {
       count++;
       functionArray[count%3](data);
+      scope.makeApiCall(url,(response)=> {
+        var modifiedResponse = JSON.parse(response);
+        for(var i=0; i<modifiedResponse.length; i++){
+          if(modifiedResponse[i].match_live === '1'){
+              scope.response = modifiedResponse[i];
+          }
+        }
+      });
     },5000);
-
   }
-
 
   this.createNoShowDOM = function(){
-
     container.innerHTML='NO LIVE MATCH DATA FOUND'
+    container.setAttribute('style','padding:10px; margin:auto; font-size: 14px; text-align:center')
   }
-
 
   this.init();
 }

@@ -1,10 +1,43 @@
 #div{
-  background: white;
-  color:red;
+  color: white;
+  background-color: #0096CC;
   width:auto;
   max-width: 100%;
   overflow: auto;
-  margin: auto;
+  margin: 10px;
   top:1;
-  border: 1px solid red;
+  border: 1px solid #0096CC;
+  padding: 10px;
+}
+
+.button{
+  display: inline-block;
+  border-radius: 4px;
+  border: none;
+  text-align: center;
+  font-size: 12px;
+  padding: 5px;
+  width: auto;
+  transition: all 0.5s;
+  cursor: pointer;
+  margin: 5px;
+}
+
+#scoreCard{
+  width:auto;
+  height:auto;
+  margin:10px;
+  padding:5px;
+  border: 0.5px solid grey;
+  background: red;
+  border-radius: 5px;
+}
+
+#scoreBoard{
+  text-align:center;
+  margin:auto;
+}
+
+#currentData{
+  margin:auto;
 }
